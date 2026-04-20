@@ -1,0 +1,496 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Pizza, 
+  MapPin, 
+  Clock, 
+  Phone, 
+  Star, 
+  MessageCircle, 
+  Flame, 
+  ChevronRight,
+  ShoppingBag,
+  Info,
+  Sparkles,
+  Send,
+  RotateCcw,
+  User,
+  ChefHat
+} from 'lucide-react';
+
+// --- Gemini API Configuration ---
+const apiKey = ""; // Environment provides this at runtime
+const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-50 font-sans selection:bg-orange-500 selection:text-white">
+      {/* Navbar */}
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 py-4' : 'bg-transparent py-6'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('home')}>
+            <Flame className="text-orange-500 animate-pulse" size={32} />
+            <span className="text-2xl font-black tracking-tighter uppercase bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+              The Beast Pizza
+            </span>
+          </div>
+          <div className="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wider">
+            <button onClick={() => setActiveTab('home')} className={`hover:text-orange-500 transition-colors ${activeTab === 'home' ? 'text-orange-500' : 'text-neutral-300'}`}>Home</button>
+            <button onClick={() => setActiveTab('menu')} className={`hover:text-orange-500 transition-colors ${activeTab === 'menu' ? 'text-orange-500' : 'text-neutral-300'}`}>The Menu</button>
+            <button onClick={() => setActiveTab('ai')} className={`hover:text-orange-500 transition-colors ${activeTab === 'ai' ? 'text-orange-500' : 'text-neutral-300'} flex items-center gap-1`}>
+              ✨ Beast AI
+            </button>
+            <button onClick={() => setActiveTab('reviews')} className={`hover:text-orange-500 transition-colors ${activeTab === 'reviews' ? 'text-orange-500' : 'text-neutral-300'}`}>Reviews</button>
+          </div>
+          <a href="https://wa.me/9108355815058" target="_blank" rel="noreferrer" className="hidden md:flex items-center gap-2 bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-green-900/20">
+            <MessageCircle size={18} />
+            <span>Order Now</span>
+          </a>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="pt-20">
+        {activeTab === 'home' && <HomeView setActiveTab={setActiveTab} />}
+        {activeTab === 'menu' && <MenuView />}
+        {activeTab === 'ai' && <AiConcierge />}
+        {activeTab === 'reviews' && <ReviewsView />}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-neutral-900 border-t border-neutral-800 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Flame className="text-orange-500" size={24} />
+              <span className="text-xl font-black tracking-tighter uppercase text-white">The Beast Pizza</span>
+            </div>
+            <p className="text-neutral-400 mb-6 leading-relaxed">
+              Humble standby fixing up epic finger foods & a legendary variety of pizzas. We never skimp on the cheese.
+            </p>
+            <div className="flex gap-4">
+              <span className="px-3 py-1 bg-neutral-800 rounded-full text-xs font-bold text-orange-400">₹200–400 per person</span>
+              <span className="px-3 py-1 bg-neutral-800 rounded-full text-xs font-bold text-green-400">Pure Veg Options</span>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h4 className="text-lg font-bold text-white mb-4 uppercase tracking-wider">Find Us</h4>
+            <div className="flex items-start gap-3 text-neutral-400">
+              <MapPin className="text-orange-500 shrink-0 mt-1" size={20} />
+              <p>3/40 A, Ramchandra Bhatt Marg, opp. Noor Baug, Hall, Mumbai, Maharashtra 400009</p>
+            </div>
+            <div className="flex items-center gap-3 text-neutral-400">
+              <Phone className="text-orange-500 shrink-0" size={20} />
+              <p>083558 15058</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-lg font-bold text-white mb-4 uppercase tracking-wider">Hours</h4>
+            <div className="flex items-start gap-3 text-neutral-400">
+              <Clock className="text-orange-500 shrink-0 mt-1" size={20} />
+              <div>
+                <p className="font-semibold text-green-500 mb-1">Open Now</p>
+                <p>Morning Shift: Closes 2:30 PM</p>
+                <p>Evening Shift: Reopens 4:30 PM</p>
+                <p className="text-sm mt-2 text-neutral-500 italic">* Usually a little busy around 3 AM on Tuesdays!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// --- GEMINI API UTILITY ---
+async function callGemini(prompt, systemPrompt = "You are a helpful assistant.") {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] }
+  };
+
+  let delay = 1000;
+  for (let i = 0; i < 5; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error('API request failed');
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "The Beast is resting. Try again later!";
+    } catch (err) {
+      if (i === 4) throw err;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
+    }
+  }
+}
+
+// --- AI CONCIERGE VIEW ---
+function AiConcierge() {
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: "RAWR! I'm the Beast AI. Tell me how you're feeling or what you're craving, and I'll find your soul-pizza from our legendary menu." }
+  ]);
+  const [loading, setLoading] = useState(false);
+
+  const menuContext = `
+    The Beast Pizza Menu:
+    - The Legendary 18 Inch Pizza (Giant size, for huge appetites)
+    - Darkseid Pizza (Spicy, intense, universal power)
+    - Thanos Pizza (Perfectly balanced toppings, popular)
+    - Hell Boy Pizza (Very spicy, fiery, bold)
+    - Shang Chi Pizza (Ten rings of flavor, new, master-tier)
+    - Alphabet Pizza 12 Inches (Personalized, fun)
+    - Cheese Burst (Gooey cheese add-on)
+    - Crispy Chicken Burger (Beast sauce, juicy)
+    - Cheese Garlic Bread (Classic starter)
+    - Chicken Nuggets (Crispy, juicy)
+  `;
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    
+    const userMsg = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const systemPrompt = `You are the Beast Pizza AI Assistant. You are bold, enthusiastic, and use superhero references. 
+      Your goal is to recommend items from the provided menu based on the user's mood or description.
+      Be concise but energetic. Use emojis. If the user asks for something not on the menu, try to find the closest match.
+      Menu: ${menuContext}`;
+      
+      const response = await callGemini(input, systemPrompt);
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Something went wrong in the beast den. Please try again!" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12 animate-in fade-in slide-in-from-bottom-5">
+      <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[600px]">
+        <div className="bg-orange-600 p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Sparkles className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black uppercase text-white leading-none">Beast AI Concierge</h3>
+              <p className="text-orange-100 text-xs font-bold uppercase mt-1">✨ Powered by Gemini</p>
+            </div>
+          </div>
+          <button onClick={() => setMessages([messages[0]])} className="p-2 hover:bg-black/10 rounded-full transition-colors text-white/70">
+            <RotateCcw size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] rounded-2xl p-4 flex gap-3 ${m.role === 'user' ? 'bg-orange-600 text-white' : 'bg-neutral-800 text-neutral-200 border border-neutral-700'}`}>
+                <div className="shrink-0 mt-1">
+                  {m.role === 'user' ? <User size={18} /> : <Flame size={18} className="text-orange-500" />}
+                </div>
+                <p className="text-sm md:text-base leading-relaxed">{m.content}</p>
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div className="flex justify-start animate-pulse">
+              <div className="bg-neutral-800 rounded-2xl p-4 flex gap-3">
+                <Flame size={18} className="text-orange-500" />
+                <p className="text-sm text-neutral-400 font-bold uppercase tracking-widest">The Beast is thinking...</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-t border-neutral-800 bg-neutral-900/50">
+          <div className="relative flex items-center">
+            <input 
+              type="text" 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="I'm feeling hungry and powerful, what should I eat?" 
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-4 pl-6 pr-14 text-white focus:outline-none focus:border-orange-500 transition-all shadow-inner"
+            />
+            <button 
+              onClick={handleSend}
+              disabled={loading}
+              className="absolute right-2 p-3 bg-orange-600 hover:bg-orange-500 text-white rounded-full transition-all disabled:opacity-50 disabled:hover:scale-100 transform active:scale-95"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- HOME VIEW ---
+function HomeView({ setActiveTab }) {
+  return (
+    <div className="animate-in fade-in duration-700">
+      <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=2000&q=80" 
+            alt="Delicious Pizza" 
+            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
+        </div>
+
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 border border-orange-500/50 text-orange-400 font-bold text-sm mb-8 backdrop-blur-sm">
+            <Sparkles size={16} className="text-orange-500 animate-spin-slow" />
+            <span>AI-Powered Recommendations Live</span>
+          </div>
+          
+          <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 leading-none">
+            Unleash <br/><span className="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">The Beast</span>
+          </h1>
+          
+          <p className="text-lg md:text-2xl text-neutral-300 font-medium mb-10 max-w-2xl">
+            Home of the Legendary 18-Inch Pizza. Now with ✨ AI Magic to find your perfect flavor match.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button 
+              onClick={() => setActiveTab('ai')}
+              className="px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-all transform hover:scale-105 shadow-xl shadow-orange-900/40"
+            >
+              <Sparkles size={20} />
+              ✨ Ask the Beast AI
+            </button>
+            <button 
+              onClick={() => setActiveTab('menu')}
+              className="px-8 py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-all transform hover:scale-105"
+            >
+              <Pizza size={20} />
+              Browse Menu
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Teaser */}
+      <section className="py-20 px-4 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row gap-12 items-center">
+          <div className="flex-1 space-y-6">
+            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">The Multiverse of <span className="text-orange-500">Madness</span></h2>
+            <p className="text-xl text-neutral-400 leading-relaxed">
+              From the cosmic destruction of the <strong className="text-white">Darkseid Pizza</strong> to the perfectly balanced <strong className="text-white">Thanos Pizza</strong>, our menu is designed for heroes and villains alike.
+            </p>
+            <ul className="space-y-3 font-semibold text-neutral-300">
+              <li className="flex items-center gap-3"><ChevronRight className="text-orange-500" /> Thick, generous bases</li>
+              <li className="flex items-center gap-3"><ChevronRight className="text-orange-500" /> Unbeatable quantity for the price</li>
+              <li className="flex items-center gap-3"><ChevronRight className="text-orange-500" /> AI-Curated Experience</li>
+            </ul>
+          </div>
+          <div className="flex-1 relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-orange-500 to-red-600 rounded-3xl blur-2xl opacity-20 animate-pulse"></div>
+            <img 
+              src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80" 
+              alt="Cheesy Pizza" 
+              className="relative z-10 rounded-3xl shadow-2xl border border-neutral-800 transform rotate-2 hover:rotate-0 transition-transform duration-500"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// --- MENU VIEW ---
+function MenuView() {
+  const [magicLoading, setMagicLoading] = useState(null);
+  const [magicTips, setMagicTips] = useState({});
+
+  const menuItems = [
+    { name: "The Legendary 18 Inch Pizza", desc: "A mammoth pizza designed for a beastly appetite.", tag: "Giant", type: "pizza" },
+    { name: "Darkseid Pizza", desc: "Conquer your cravings with universal power and intense flavors.", tag: "Spicy", type: "pizza" },
+    { name: "Thanos Pizza", desc: "Perfectly balanced toppings, as all things should be.", tag: "Popular", type: "pizza" },
+    { name: "Hell Boy Pizza", desc: "Fiery, bold, and packing a serious punch. Not for the faint-hearted.", tag: "Very Spicy", type: "pizza" },
+    { name: "Shang Chi Pizza", desc: "Master the ten rings of flavor with this martial arts inspired masterpiece.", tag: "New", type: "pizza" },
+    { name: "Alphabet Pizza 12 Inches", desc: "Spell out your love for pizza with every slice.", type: "pizza" },
+    { name: "Cheese Burst", desc: "An explosion of liquid gooey cheese inside the crust.", tag: "Add-on", type: "side" },
+    { name: "Crispy Chicken Burger", desc: "Crispy fried chicken patty, fresh lettuce, and our secret beast sauce.", type: "burger" },
+    { name: "Cheese Garlic Bread", desc: "Freshly baked bread smothered in garlic butter and molten cheese.", type: "side" },
+    { name: "Chicken Nuggets", desc: "Bite-sized pieces of heaven. Crispy on the outside, juicy inside.", type: "side" }
+  ];
+
+  const handleMagicTip = async (itemName) => {
+    setMagicLoading(itemName);
+    try {
+      const prompt = `Give me a 1-sentence "Magic Ingredient ✨" or flavor pairing tip for the item: "${itemName}". Make it creative and superhero themed.`;
+      const tip = await callGemini(prompt, "You are a witty pizza chef.");
+      setMagicTips(prev => ({ ...prev, [itemName]: tip }));
+    } catch (e) {
+      setMagicTips(prev => ({ ...prev, [itemName]: "Add extra lava cheese for ultimate power!" }));
+    } finally {
+      setMagicLoading(null);
+    }
+  };
+
+  return (
+    <div className="pt-8 pb-20 px-4 max-w-7xl mx-auto animate-in slide-in-from-bottom-10 duration-500">
+      <div className="text-center mb-16">
+        <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tight mb-4 text-white">The <span className="text-orange-500">Menu</span></h2>
+        <p className="text-neutral-400 text-lg max-w-2xl mx-auto">Explore our legendary items. Use the ✨ Magic button for pairing tips!</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {menuItems.map((item, index) => (
+          <div key={index} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 hover:border-orange-500/50 hover:bg-neutral-800/80 transition-all group flex flex-col h-full">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-white group-hover:text-orange-400 transition-colors">{item.name}</h3>
+              {item.tag && (
+                <span className="px-2.5 py-1 text-xs font-bold rounded bg-orange-500/20 text-orange-400 border border-orange-500/20 whitespace-nowrap">
+                  {item.tag}
+                </span>
+              )}
+            </div>
+            <p className="text-neutral-400 text-sm mb-4 leading-relaxed">{item.desc}</p>
+            
+            {/* AI Flavor Tip Section */}
+            <div className="mb-6">
+              {magicTips[item.name] ? (
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 text-xs text-orange-300 font-medium italic animate-in fade-in zoom-in-95">
+                  ✨ {magicTips[item.name]}
+                </div>
+              ) : (
+                <button 
+                  onClick={() => handleMagicTip(item.name)}
+                  disabled={magicLoading === item.name}
+                  className="text-xs font-bold uppercase tracking-widest text-orange-500/70 hover:text-orange-500 flex items-center gap-1.5 transition-all"
+                >
+                  {magicLoading === item.name ? <RotateCcw size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  <span>Add Magic ✨</span>
+                </button>
+              )}
+            </div>
+
+            <div className="mt-auto flex items-center justify-between pt-4 border-t border-neutral-800">
+              <span className="text-neutral-500 flex items-center gap-1 text-xs font-bold uppercase">
+                {item.type === 'pizza' ? <Pizza size={14} /> : item.type === 'burger' ? <Info size={14} /> : <Flame size={14} />}
+                {item.type}
+              </span>
+              <button className="bg-orange-600/10 hover:bg-orange-600 text-orange-500 hover:text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1 border border-orange-600/20">
+                Order <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- REVIEWS VIEW ---
+function ReviewsView() {
+  const [summary, setSummary] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const reviews = [
+    { text: "The quality and quantity of food is really nice and worth the price", author: "Google Reviewer" },
+    { text: "Unlike other brands they're not stingy to add less pieces of chicken or cheese.", author: "Google Reviewer" },
+    { text: "Owner is much positive about his talk on people negative comments..", author: "Google Reviewer" },
+    { text: "Great variety of pizzas and burgers! Super quick delivery.", author: "Local Guide" },
+    { text: "The base was a bit thick, but the toppings totally made up for it!", author: "Foodie Mumbai" }
+  ];
+
+  const generateAIBrief = async () => {
+    setLoading(true);
+    try {
+      const reviewText = reviews.map(r => r.text).join(". ");
+      const prompt = `Summarize these customer reviews for a pizza shop called The Beast Pizza into a catchy 2-sentence summary. Highlight the value and cheese, but mention the thick base. Tone: Bold and exciting. Reviews: ${reviewText}`;
+      const res = await callGemini(prompt, "You are a food critic summary bot.");
+      setSummary(res);
+    } catch (e) {
+      setSummary("The people have spoken: The Beast Pizza is the champion of quantity and cheese!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pt-8 pb-20 px-4 max-w-7xl mx-auto animate-in slide-in-from-bottom-10 duration-500">
+       <div className="text-center mb-16">
+        <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tight mb-4 text-white">Word on the <span className="text-orange-500">Street</span></h2>
+        
+        {/* AI Review Summary Feature */}
+        <div className="mb-12 max-w-2xl mx-auto">
+          {summary ? (
+             <div className="bg-neutral-900 border border-orange-500/30 p-6 rounded-2xl relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
+                  <Sparkles size={40} className="text-orange-500" />
+               </div>
+               <p className="text-xl text-orange-400 font-bold mb-2">✨ Beast Brief</p>
+               <p className="text-neutral-300 italic leading-relaxed">"{summary}"</p>
+             </div>
+          ) : (
+            <button 
+              onClick={generateAIBrief}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 border border-neutral-700 hover:border-orange-500 rounded-full text-sm font-bold uppercase tracking-widest text-neutral-400 hover:text-orange-500 transition-all"
+            >
+              {loading ? <RotateCcw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              <span>Generate ✨ AI Summary</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-2xl font-bold text-white mb-2">
+          <span>4.1</span>
+          <div className="flex text-orange-500">
+            <Star size={24} className="fill-current" />
+            <Star size={24} className="fill-current" />
+            <Star size={24} className="fill-current" />
+            <Star size={24} className="fill-current" />
+            <Star size={24} className="fill-current opacity-30" />
+          </div>
+        </div>
+        <p className="text-neutral-400">Based on 122 Google Reviews</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {reviews.map((review, idx) => (
+          <div key={idx} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 relative hover:bg-neutral-800/40 transition-colors group">
+            <Star className="text-orange-500/10 absolute top-4 right-4 group-hover:text-orange-500/20 transition-colors" size={48} />
+            <p className="text-lg text-neutral-300 font-medium italic mb-6 relative z-10">"{review.text}"</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold border border-orange-500/20 shadow-sm">
+                {review.author.charAt(0)}
+              </div>
+              <span className="font-bold text-white tracking-tight">{review.author}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
