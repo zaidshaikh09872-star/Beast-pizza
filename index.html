@@ -10,21 +10,20 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap');
         
-        :root { --beast-orange: #FF4D00; --beast-black: #050505; }
-        body { background-color: var(--beast-black); color: #fff; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; }
+        :root { --beast-orange: #FF4D00; --beast-black: #080808; }
+        body { background-color: var(--beast-black); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
         
-        .beast-gradient { background: linear-gradient(180deg, rgba(255,77,0,0.1) 0%, rgba(0,0,0,0) 100%); }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-header { background: rgba(8, 8, 8, 0.7); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.07); transition: all 0.3s ease; }
+        .glass-card:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.05); }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .beast-glow-btn { box-shadow: 0 10px 30px rgba(255, 77, 0, 0.2); }
         
-        .beast-glow { box-shadow: 0 0 30px rgba(255, 77, 0, 0.2); }
         .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' . .'; } 60% { content: ' . . .'; } 80%, 100% { content: ' . . . .'; } }
-        
-        .pizza-card:active { scale: 0.97; }
-        .category-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body>
@@ -33,30 +32,30 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         
-        // PASTE YOUR API KEY HERE
-        const apiKey = "AIzaSyDx7aCWDbH4RbN28VyFA6d-EZwSJ_cHel0"; 
+        // APNI KEY YAHAN DAALNA
+        const apiKey = "prj_I5uuECq4pU98uJHhivUusabpoYst"; 
 
         const App = () => {
             const [view, setView] = useState('home');
             const [activeCat, setActiveCat] = useState('Signature Pizzas');
-            const [chat, setChat] = useState([{ role: 'bot', text: "Yo! Beast AI yahan hai. Byculla ki late-night cravings ka ilaaj chahiye? Kuch mangau?" }]);
+            const [chat, setChat] = useState([{ role: 'bot', text: "Welcome to The Beast Pizza. ✨ Main aapki order select karne mein help kar sakta hoon. Humare 18-inch legendary pizzas ke baare mein kuch poochna hai?" }]);
             const [input, setInput] = useState('');
             const [isTyping, setIsTyping] = useState(false);
             const chatEndRef = useRef(null);
 
             const menuData = {
                 "Signature Pizzas": [
-                    { id: 1, name: "18\" Falcon Pizza", desc: "Premium Veggie Blast: Onion, Capsicum, Mushroom & Signature Beast Sauce.", price: "₹899", tag: "Veg King", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500" },
-                    { id: 2, name: "Thanos Pizza", desc: "18-inch legendary crust. Balanced spice and maximum power.", price: "₹499", tag: "Bestseller", img: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500" },
-                    { id: 3, name: "Drax Pizza (Halal)", desc: "Succulent Chicken Seekh & BBQ Chicken fusion for meat lovers.", price: "₹599", tag: "Non-Veg", img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500" }
+                    { id: 1, name: "18\" Falcon Pizza", desc: "Our premium vegetarian masterpiece. Loaded with Onion, Capsicum, Mushroom and authentic Italian herbs.", price: "₹899", tag: "Veg Elite", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500" },
+                    { id: 2, name: "Thanos Pizza", desc: "The legendary 18-inch power pizza. Balanced spice profile with a massive crust for true pizza lovers.", price: "₹499", tag: "Bestseller", img: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500" },
+                    { id: 3, name: "Drax Pizza (Halal)", desc: "A robust fusion of succulent Chicken Seekh and BBQ Chicken. Crafted for high protein and intense flavor.", price: "₹599", tag: "Non-Veg", img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500" }
                 ],
-                "Sides": [
-                    { id: 4, name: "Chicken Cheese Balls", desc: "6 pieces of molten cheese and spicy chicken goodness.", price: "₹140", tag: "Classic", img: "https://images.unsplash.com/photo-1541529086526-db283c563270?w=500" },
-                    { id: 5, name: "Cheesy Lava Bread", desc: "Ooze into the night with our garlic lava bread.", price: "₹189", tag: "Must Have", img: "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500" }
+                "Sides & Starters": [
+                    { id: 4, name: "Chicken Cheese Balls", desc: "6 pieces of premium chicken filled with imported melting cheese. Golden fried perfection.", price: "₹140", tag: "Hot Seller", img: "https://images.unsplash.com/photo-1541529086526-db283c563270?w=500" },
+                    { id: 5, name: "Cheesy Lava Bread", desc: "Freshly baked garlic bread with a signature melting cheese core. A perfect companion to our pizzas.", price: "₹189", tag: "Must Try", img: "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500" }
                 ],
                 "Beast Shakes": [
-                    { id: 6, name: "Nutella Monster", desc: "Thick hazelnut shake with loaded Nutella layers.", price: "₹199", tag: "Premium", img: "https://images.unsplash.com/photo-1528740561666-dc2479dc08ab?w=500" },
-                    { id: 7, name: "Killer Oreo", desc: "Classic crunch with high-quality dark cocoa blend.", price: "₹159", tag: "Thick", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500" }
+                    { id: 6, name: "Nutella Monster", desc: "Premium hazelnut cocoa thick shake. Rich, dense, and crafted with original Nutella.", price: "₹199", tag: "Premium", img: "https://images.unsplash.com/photo-1528740561666-dc2479dc08ab?w=500" },
+                    { id: 7, name: "Killer Oreo", desc: "Classic dark cocoa cookies blended into a velvet-smooth thick shake.", price: "₹159", tag: "Classic", img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500" }
                 ]
             };
 
@@ -71,12 +70,12 @@
                 setInput('');
                 setIsTyping(true);
 
-                // Smart Fallback Logic: If API Fails, AI still suggests something clever
+                // Smart Fallback Personality (Professional & Informative)
                 const fallbackReplies = [
-                    "Bhai, Byculla ke mood ke liye 18-inch Falcon ekdum best hai. Full party vibe!",
-                    "Kuch solid chahiye toh Drax Pizza mangao. WhatsApp button neeche hai, 2 minute mein order ho jayega.",
-                    "Raat ke 2 baje hain? Nutella Monster Shake mangao, dimaag khul jayega!",
-                    "Beast menu mein Thanos Pizza mera favourite hai. Ek baar try karke dekho!"
+                    "Humara 18-inch Falcon Pizza sabse zyada recommended hai agar aap large group ke liye dekh rahe hain.",
+                    "Agar aap non-veg preference rakhte hain toh Drax Pizza (Halal) humara top-rated choice hai.",
+                    "Sides mein Chicken Cheese Balls bahut popular hain. Kya main aapke liye order process karun?",
+                    "Aap Byculla mein hain toh delivery 30-40 mins mein ho jayegi. Order ke liye niche WhatsApp button use karein."
                 ];
 
                 try {
@@ -84,65 +83,54 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Role: Beast Pizza AI Assistant. Tone: Mumbai Hinglish. Location: Byculla. Context: ${JSON.stringify(menuData)}. User Query: ${userMsg}. Instructions: Keep it short, funny, and suggest actual menu items.` }] }]
+                            contents: [{ parts: [{ text: `Role: Professional Food Consultant for 'The Beast Pizza'. Tone: Professional, Polite, Mumbai-style. Menu: ${JSON.stringify(menuData)}. Focus: Quality, 18-inch size, ingredients. User: ${userMsg}` }] }]
                         })
                     });
 
                     const data = await response.json();
                     if (data.candidates && data.candidates[0]) {
-                        const reply = data.candidates[0].content.parts[0].text;
-                        setChat(prev => [...prev, { role: 'bot', text: reply }]);
-                    } else { throw new Error("API Limit"); }
+                        setChat(prev => [...prev, { role: 'bot', text: data.candidates[0].content.parts[0].text }]);
+                    } else { throw new Error(); }
                 } catch (err) {
-                    // Fail gracefully - User will think AI is working!
                     setTimeout(() => {
                         const randomReply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
                         setChat(prev => [...prev, { role: 'bot', text: randomReply }]);
-                    }, 1500);
-                } finally {
-                    setIsTyping(false);
-                }
+                    }, 1200);
+                } finally { setIsTyping(false); }
             };
 
             return (
-                <div className="max-w-md mx-auto min-h-screen flex flex-col bg-[#050505] relative shadow-2xl">
+                <div className="max-w-md mx-auto min-h-screen bg-[#080808] flex flex-col relative shadow-2xl overflow-x-hidden">
                     
-                    {/* Header AI Trigger */}
-                    <div className="fixed top-0 left-0 right-0 z-[100] p-5 pt-7">
-                        <div onClick={() => setView('chat')} className="glass rounded-full py-3 px-6 flex items-center justify-between beast-glow cursor-pointer active:scale-95 transition-transform">
+                    {/* Floating Navigation Trigger */}
+                    <div className="fixed top-0 left-0 right-0 z-[100] px-5 pt-8">
+                        <div onClick={() => setView('chat')} className="glass-header rounded-2xl p-4 flex items-center justify-between border border-white/10 cursor-pointer shadow-2xl active:scale-95 transition-transform">
                             <div className="flex items-center gap-3">
-                                <span className="relative flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-600"></span>
-                                </span>
-                                <span className="text-[10px] font-bold tracking-widest text-orange-500 uppercase">Beast AI Assistant</span>
+                                <div className="w-2 h-2 rounded-full bg-orange-600 animate-pulse"></div>
+                                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-orange-500">Beast Concierge ✨</span>
                             </div>
-                            <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-tighter">Ask Anything</span>
+                            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">Get Assistance</span>
                         </div>
                     </div>
 
                     {view === 'home' ? (
                         <div className="flex-1 animate__animated animate__fadeIn">
-                            {/* Hero Section */}
-                            <section className="pt-28 px-6 pb-10 text-center beast-gradient">
-                                <h1 className="text-[70px] font-black italic leading-[0.8] tracking-tighter uppercase mb-4">
-                                    BEAST<br/><span className="text-orange-600">PIZZA</span>
+                            {/* Hero Content */}
+                            <section className="pt-32 px-7 pb-10">
+                                <h1 className="text-[55px] font-extrabold italic leading-[0.85] tracking-tighter uppercase mb-2">
+                                    THE BEAST<br/><span className="text-orange-600">PIZZA</span>
                                 </h1>
-                                <div className="flex justify-center items-center gap-2 mb-6">
-                                    <span className="h-[1px] w-8 bg-neutral-800"></span>
-                                    <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.4em]">Legendary 18-Inch Mumbai</p>
-                                    <span className="h-[1px] w-8 bg-neutral-800"></span>
-                                </div>
+                                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.3em] ml-1">The 18-Inch Mumbai Legend</p>
                             </section>
 
-                            {/* Category Filter */}
-                            <div className="px-6 mb-8 sticky top-24 z-[90] bg-[#050505]/80 backdrop-blur-md py-4">
+                            {/* Menu Categories */}
+                            <div className="px-6 mb-8 sticky top-24 z-[90] bg-[#080808]/90 py-2">
                                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
                                     {Object.keys(menuData).map(cat => (
                                         <button 
                                             key={cat} 
                                             onClick={() => setActiveCat(cat)}
-                                            className={`category-btn px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap border ${activeCat === cat ? 'bg-orange-600 border-orange-600 text-white shadow-lg' : 'bg-transparent border-neutral-800 text-neutral-500'}`}
+                                            className={`px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${activeCat === cat ? 'bg-orange-600 border-orange-600 text-white' : 'bg-neutral-900 border-white/5 text-neutral-500'}`}
                                         >
                                             {cat}
                                         </button>
@@ -150,94 +138,99 @@
                                 </div>
                             </div>
 
-                            {/* Menu Grid */}
-                            <div className="px-6 space-y-6 mb-32">
+                            {/* Menu List */}
+                            <div className="px-6 space-y-5 mb-40">
                                 {menuData[activeCat].map(item => (
-                                    <div key={item.id} className="pizza-card glass rounded-[40px] p-4 flex gap-5 group transition-all duration-300">
-                                        <div className="w-24 h-24 rounded-[30px] overflow-hidden shrink-0 shadow-xl bg-neutral-900">
-                                            <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                                    <div key={item.id} className="glass-card rounded-[35px] p-4 flex gap-4">
+                                        <div className="w-24 h-24 rounded-[25px] overflow-hidden shrink-0 bg-neutral-900 shadow-lg">
+                                            <img src={item.img} className="w-full h-full object-cover" alt={item.name} />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
                                             <div className="flex justify-between items-start mb-1">
-                                                <span className="text-[8px] font-black text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">{item.tag}</span>
-                                                <span className="text-sm font-bold text-neutral-300">{item.price}</span>
+                                                <span className="text-[8px] font-black text-orange-500 uppercase bg-orange-500/10 px-2 py-0.5 rounded-md">{item.tag}</span>
+                                                <span className="text-xs font-bold text-neutral-300">{item.price}</span>
                                             </div>
-                                            <h3 className="text-lg font-black uppercase italic leading-none mb-1 tracking-tight">{item.name}</h3>
-                                            <p className="text-[10px] text-neutral-500 leading-tight">{item.desc}</p>
+                                            <h3 className="text-lg font-extrabold uppercase italic leading-none mb-1">{item.name}</h3>
+                                            <p className="text-[10px] text-neutral-500 leading-tight line-clamp-2">{item.desc}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Amenities & Footer */}
-                            <footer className="bg-neutral-950 p-10 pb-40 text-center rounded-t-[50px] border-t border-white/5">
-                                <div className="mb-10">
-                                    <h4 className="text-orange-600 text-[10px] font-black uppercase tracking-[0.3em] mb-4 italic">The Beast Location</h4>
-                                    <p className="text-sm font-medium text-neutral-400">Shop No. 5, Noor Baug, Byculla East,<br/>Mumbai - 400009</p>
-                                    <a href="https://maps.google.com" className="text-[10px] text-white/40 underline uppercase mt-2 block">Open in Maps</a>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mb-10 text-[10px] font-bold uppercase tracking-widest">
-                                    <div className="glass p-4 rounded-3xl">
-                                        <p className="text-orange-600 mb-1">Timing</p>
-                                        <p>1 PM - 4 AM</p>
+                            {/* Pro Footer with Details */}
+                            <footer className="bg-neutral-900/50 p-10 pb-44 rounded-t-[40px] border-t border-white/5">
+                                <div className="space-y-10">
+                                    <div>
+                                        <h4 className="text-orange-600 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Location & Logistics</h4>
+                                        <p className="text-sm font-medium text-neutral-400 leading-relaxed">
+                                            Shop No. 5, Noor Baug, Byculla East,<br/>
+                                            Mumbai, Maharashtra 400009
+                                        </p>
+                                        <a href="#" className="text-[10px] text-orange-500 uppercase font-bold mt-2 inline-block">View on Google Maps</a>
                                     </div>
-                                    <div className="glass p-4 rounded-3xl">
-                                        <p className="text-orange-600 mb-1">Service</p>
-                                        <p>Dine-in / Delivery</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-neutral-950 p-5 rounded-2xl border border-white/5">
+                                            <p className="text-orange-600 text-[9px] font-black uppercase mb-1">Hours</p>
+                                            <p className="text-xs font-bold">1:00 PM - 4:00 AM</p>
+                                        </div>
+                                        <div className="bg-neutral-950 p-5 rounded-2xl border border-white/5">
+                                            <p className="text-orange-600 text-[9px] font-black uppercase mb-1">Contact</p>
+                                            <p className="text-xs font-bold">+91 8355815058</p>
+                                        </div>
                                     </div>
+                                    <p className="text-[8px] text-neutral-600 font-bold uppercase tracking-[0.4em] text-center pt-4">© 2024 The Beast Pizza Enterprise</p>
                                 </div>
-                                <p className="text-[9px] text-neutral-700 font-bold uppercase tracking-[0.5em]">© 2024 Beast Pizza International</p>
                             </footer>
                         </div>
                     ) : (
-                        /* AI Chat View */
-                        <div className="fixed inset-0 z-[200] bg-black flex flex-col animate__animated animate__fadeInUp">
-                            <div className="p-8 pt-12 flex justify-between items-center border-b border-white/5 bg-black/50 backdrop-blur-md">
+                        /* AI Assistant View */
+                        <div className="fixed inset-0 z-[200] bg-[#080808] flex flex-col animate__animated animate__fadeInUp">
+                            <div className="p-8 pt-14 flex justify-between items-center glass-header">
                                 <div>
-                                    <h2 className="text-2xl font-black italic uppercase text-orange-600 leading-none mb-1">Beast AI ✨</h2>
-                                    <p className="text-[9px] text-neutral-500 uppercase font-bold tracking-widest">Late Night Byculla Expert</p>
+                                    <h2 className="text-2xl font-black italic uppercase text-orange-600 mb-0.5">Beast Concierge ✨</h2>
+                                    <p className="text-[9px] text-neutral-500 uppercase font-bold tracking-widest">Premium Menu Assistant</p>
                                 </div>
-                                <button onClick={() => setView('home')} className="w-12 h-12 glass rounded-full flex items-center justify-center font-bold">✕</button>
+                                <button onClick={() => setView('home')} className="w-10 h-10 bg-neutral-900 rounded-full flex items-center justify-center font-bold">✕</button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar pb-10">
                                 {chat.map((m, i) => (
                                     <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[85%] p-5 rounded-[30px] shadow-2xl ${m.role === 'user' ? 'bg-orange-600 text-white font-medium' : 'bg-neutral-900 border border-white/5 text-neutral-300'}`}>
+                                        <div className={`max-w-[85%] p-5 rounded-[25px] ${m.role === 'user' ? 'bg-orange-600 text-white' : 'bg-neutral-900 border border-white/5 text-neutral-300'}`}>
                                             <p className="text-sm leading-relaxed">{m.text}</p>
                                         </div>
                                     </div>
                                 ))}
                                 {isTyping && (
                                     <div className="flex justify-start">
-                                        <div className="bg-neutral-900 p-5 rounded-[30px] border border-white/5">
-                                            <span className="text-[10px] font-black text-orange-500 uppercase italic tracking-widest loading-dots">Beast is cooking</span>
+                                        <div className="bg-neutral-900 p-4 rounded-2xl">
+                                            <span className="text-[10px] font-black text-orange-500 uppercase italic loading-dots">Thinking</span>
                                         </div>
                                     </div>
                                 )}
                                 <div ref={chatEndRef} />
                             </div>
 
-                            <div className="p-6 pb-12 bg-black border-t border-white/5">
-                                <div className="flex gap-3">
+                            <div className="p-6 pb-12 bg-[#080808]">
+                                <div className="flex gap-2">
                                     <input 
-                                        className="flex-1 bg-neutral-900 border border-white/10 rounded-[25px] py-5 px-6 text-sm outline-none focus:border-orange-600 transition-all text-white" 
-                                        placeholder="Order suggest karo..." 
+                                        className="flex-1 bg-neutral-900 border border-white/5 rounded-2xl py-5 px-6 text-sm outline-none focus:border-orange-600 text-white" 
+                                        placeholder="Type your query..." 
                                         value={input} 
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && askBeastAI()}
                                     />
-                                    <button onClick={askBeastAI} className="w-16 h-16 bg-white text-black rounded-[25px] flex items-center justify-center font-black active:scale-90 transition-transform">↑</button>
+                                    <button onClick={askBeastAI} className="w-16 h-16 bg-white text-black rounded-2xl flex items-center justify-center font-black">↑</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Fixed Order Button */}
-                    <div className="fixed bottom-8 left-0 right-0 px-8 z-[150] flex justify-center pointer-events-none">
-                        <a href="https://wa.me/918355815058" className="pointer-events-auto bg-white text-black h-18 w-full max-w-[400px] rounded-[30px] flex items-center justify-center gap-3 font-black uppercase text-[11px] tracking-[0.2em] shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-all">
+                    {/* Static WhatsApp Footer */}
+                    <div className="fixed bottom-8 left-0 right-0 px-8 z-[150] flex justify-center">
+                        <a href="https://wa.me/918355815058" className="beast-glow-btn bg-white text-black h-16 w-full max-w-[400px] rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-5 h-5" alt="WA" />
-                            Order Now
+                            Place Order via WhatsApp
                         </a>
                     </div>
                 </div>
